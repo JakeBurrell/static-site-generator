@@ -51,22 +51,22 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     for node in old_nodes:
 
         if node.text_type != TextType.TEXT:
-            new_nodes.append(old_nodes)
-        elif delimiter in node.text:
-            delim_found = True
-            nodes = node.text.split(delimiter)
-            if len(nodes) % 2 == 0:
-                raise Exception("Invalid markdown, formatted section is not closed")
-            split_nodes = []
-            for i in range(len(nodes)):
-                if nodes[i] == "":
-                    continue
-                if i % 2 == 0:
-                    split_nodes.append(TextNode(nodes[i], TextType.TEXT))
-                else:
-                    split_nodes.append(TextNode(nodes[i], text_type))
+            new_nodes.append(node)
+            continue
+        delim_found = True
+        nodes = node.text.split(delimiter)
+        if len(nodes) % 2 == 0:
+            raise ValueError("Invalid markdown, formatted section is not closed")
+        split_nodes = []
+        for i in range(len(nodes)):
+            if nodes[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(nodes[i], TextType.TEXT))
+            else:
+                split_nodes.append(TextNode(nodes[i], text_type))
 
-            new_nodes.extend(split_nodes)
+        new_nodes.extend(split_nodes)
     if not delim_found:
         raise Exception("No delimiter existed within the TextNodes")
     return new_nodes
@@ -77,47 +77,46 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)",text)
 
-def split_nodes_link(old_nodes):
+
+def split_nodes_on(nodes, extraction_method, text_type, split_on):
     new_nodes = []
-    for node in old_nodes:
-        found_links = extract_markdown_links(node.text)
-        if not found_links:
+    for node in nodes:
+        found_elements = extraction_method(node.text)
+        if not found_elements:
             new_nodes.append(node)
+            continue
         node_text = node.text
         sections = None
-        for link in found_links:
-            (link_alt, link) = link
-            sections = node_text.split(f"[{link_alt}]({link})")
+        for pic in found_elements:
+            (alt, link) = pic
+            sections = node_text.split(split_on(alt, link))
             if len(sections) == 2:
                 if sections[0] != "":
                     new_nodes.append(TextNode(sections[0], TextType.TEXT))
                 node_text = sections[1]
-            new_nodes.append(TextNode(link_alt, TextType.LINK, link))
+            new_nodes.append(TextNode(alt, text_type, link))
 
-        if sections and len(sections) > 1 and sections[1] != "":
-            new_nodes.append(TextNode(sections[1], TextType.TEXT))
+        if node_text != "":
+            new_nodes.append(TextNode(node_text, TextType.TEXT))
     return new_nodes
+
+def split_nodes_link(old_nodes):
+    return split_nodes_on(old_nodes, extract_markdown_links, TextType.LINK,
+        lambda a, b: f"[{a}]({b})")
 
 def split_nodes_image(old_nodes):
-    new_nodes = []
-    for node in old_nodes:
-        found_images = extract_markdown_images(node.text)
-        if not found_images:
-            new_nodes.append(node)
-        node_text = node.text
-        sections = None
-        for pic in found_images:
-            (pic_alt, pic_link) = pic
-            sections = node_text.split(f"![{pic_alt}]({pic_link})")
-            if len(sections) == 2:
-                if sections[0] != "":
-                    new_nodes.append(TextNode(sections[0], TextType.TEXT))
-                node_text = sections[1]
-            new_nodes.append(TextNode(pic_alt, TextType.IMAGE, pic_link))
+    return split_nodes_on(old_nodes, extract_markdown_images, TextType.IMAGE,
+        lambda a, b: f"![{a}]({b})")
 
-        if sections and len(sections) > 1 and sections[1] != "":
-            new_nodes.append(TextNode(sections[1], TextType.TEXT))
-    return new_nodes
-
-def split_nodes_on():
-    pass
+def create_to_textnodes(text):
+    node = TextNode(text, TextType.TEXT)
+    # Split on bold text
+    nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+    # Split on italic
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    # Split on code
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    # Split on links
+    nodes = split_nodes_link(nodes)
+    nodes = split_nodes_image(nodes)
+    return nodes

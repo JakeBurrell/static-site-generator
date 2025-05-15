@@ -2,7 +2,7 @@ import unittest
 
 from textnode import (
     TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, extract_markdown_links, extract_markdown_images,
-    split_nodes_image, split_nodes_link
+    split_nodes_image, split_nodes_link, create_to_textnodes
 )
 
 
@@ -78,12 +78,6 @@ class TestTextNode(unittest.TestCase):
         ]
         self.assertEqual(new_nodes, expected)
 
-
-    def test_split_nodes_delimiter_error(self):
-        node = TextNode("This is text with a `code block` word", TextType.TEXT)
-        with self.assertRaises(Exception) as context:
-            split_nodes_delimiter([node], "**", TextType.CODE)
-        self.assertEqual("No delimiter existed within the TextNodes", str(context.exception))
 
     def test_extract_markdown_images(self):
         matches = extract_markdown_images(
@@ -218,6 +212,47 @@ class TestTextNode(unittest.TestCase):
                 ),
             ],
             new_nodes
+        )
+
+    def test_create_to_textnodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        returned_nodes = create_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            returned_nodes
+        )
+
+    def test_create_to_textnodes_v2(self):
+        text = "**text** and **bold** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev) another picture [to boot dev](https://www.boot.dev)"
+        returned_nodes = create_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("text", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" another picture ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev")
+            ],
+            returned_nodes
         )
 
 if __name__ == "__main__":
