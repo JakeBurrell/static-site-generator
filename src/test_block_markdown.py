@@ -1,6 +1,7 @@
 import unittest
 
-from block_markdown import BlockType, block_to_blocktype, markdown_to_blocks
+from block_markdown import BlockType, block_to_blocktype, markdown_to_blocks, unordered_list_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestBlockMarkdown(unittest.TestCase):
 
@@ -123,4 +124,30 @@ This is **bolded** paragraph
             block_to_blocktype(block),
             BlockType.PARAGRAPH,
             block
+        )
+
+    def test_unordered_list_to_html_node(self):
+        block = '''
+- This is
+- That
+- Another
+        '''.strip()
+        result = unordered_list_to_html_node(block)
+        self.assertEqual(
+            result.to_html(),
+          "<ul><li>This is</li><li>That</li><li>Another</li></ul>",
+            result
+        )
+
+    def test_unordered_list_to_html_node_bold(self):
+        block = '''
+- This **is**
+- That
+- Another
+        '''.strip()
+        result = unordered_list_to_html_node(block)
+        self.assertEqual(
+            result.to_html(),
+          "<ul><li>This <b>is</b></li><li>That</li><li>Another</li></ul>",
+            result
         )
