@@ -1,6 +1,6 @@
 import unittest
 
-from block_markdown import BlockType, block_to_blocktype, markdown_to_blocks, unordered_list_to_html_node
+from block_markdown import BlockType, block_to_blocktype, markdown_to_blocks, list_to_html_node, markdown_to_html_node
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestBlockMarkdown(unittest.TestCase):
@@ -132,7 +132,7 @@ This is **bolded** paragraph
 - That
 - Another
         '''.strip()
-        result = unordered_list_to_html_node(block)
+        result = list_to_html_node('ul', block)
         self.assertEqual(
             result.to_html(),
           "<ul><li>This is</li><li>That</li><li>Another</li></ul>",
@@ -145,9 +145,76 @@ This is **bolded** paragraph
 - That
 - Another
         '''.strip()
-        result = unordered_list_to_html_node(block)
+        result = list_to_html_node("ul",block)
         self.assertEqual(
             result.to_html(),
           "<ul><li>This <b>is</b></li><li>That</li><li>Another</li></ul>",
             result
+        )
+
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+    """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_codeblock(self):
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+        """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        expected = "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>"
+        self.assertEqual(
+            html,
+            expected
+        )
+
+    def test_all_blocks(self):
+        md = """
+## New heading
+
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+Ordered list
+
+1. Item one
+2. Item two added
+
+Unordered List
+
+- items
+- item Another
+
+Quote blocks
+
+> Hello
+> This is a quote
+
+    """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h2>New heading</h2><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p><p>Ordered list</p><ol><li>Item one</li><li>Item two added</li></ol><p>Unordered List</p><ul><li>items</li><li>item Another</li></ul><p>Quote blocks</p><blockquote> Hello\n This is a quote</blockquote></div>"
         )

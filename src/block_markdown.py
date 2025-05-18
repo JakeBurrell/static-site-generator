@@ -36,27 +36,27 @@ def heading_to_htmlnode(text):
     return ParentNode(f"h{heading_number}", heading_html_nodes )
 
 def paragraph_to_html_node(text):
-    para_text_nodes = create_to_textnodes(text)
+    para_text_nodes = create_to_textnodes(text.replace('\n', ' '))
     para_html_nodes = [text_node_to_html_node(node) for node in para_text_nodes]
     return ParentNode("p", para_html_nodes)
 
 def code_to_html_node(text):
-    code_text = '\n'.join(text.split('\n')[1:-1])
+    code_text = '\n'.join(text.split('\n')[1:-1]) + '\n'
     return ParentNode("pre", [LeafNode("code", code_text)])
 
 def quote_to_html_node(text):
-    quote_text = "\n".join([quote[-1:] for quote in text.split("\n")])
+    quote_text = "\n".join([quote[1:] for quote in text.split("\n")])
     quote_text_nodes = create_to_textnodes(quote_text)
     quote_html_nodes = [text_node_to_html_node(node) for node in quote_text_nodes]
     return ParentNode("blockquote", quote_html_nodes)
 
-def unordered_list_to_html_node(text):
+def list_to_html_node(tag, text):
     unordered_list = [list_item.split(" ", 1)[1] for list_item in text.split("\n")]
     unordered_list_nodes = [create_to_textnodes(list_item) for list_item in unordered_list]
-    unordered_list_html_nodes = [[text_node_to_html_node(node) 
-        for node in list_item_nodes] 
+    unordered_list_html_nodes = [[text_node_to_html_node(node)
+        for node in list_item_nodes]
     for list_item_nodes in unordered_list_nodes]
-    return ParentNode('ul', [ParentNode('li', list_item_nodes) 
+    return ParentNode(tag, [ParentNode('li', list_item_nodes)
         for list_item_nodes in unordered_list_html_nodes])
 
 def markdown_to_html_node(markdown):
@@ -74,7 +74,10 @@ def markdown_to_html_node(markdown):
             case BlockType.QUOTE:
                 block_nodes.append(quote_to_html_node(block))
             case BlockType.UNORDERED_LIST:
-                block_nodes.append()
+                block_nodes.append(list_to_html_node("ul", block))
+            case BlockType.ORDERED_LIST:
+                block_nodes.append(list_to_html_node("ol", block))
+    return ParentNode("div", block_nodes)
 
 
 def is_heading(block) -> bool:
