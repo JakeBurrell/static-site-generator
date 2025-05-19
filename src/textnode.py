@@ -67,8 +67,8 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 split_nodes.append(TextNode(nodes[i], text_type))
 
         new_nodes.extend(split_nodes)
-    if not delim_found:
-        raise Exception("No delimiter existed within the TextNodes")
+    #if not delim_found:
+        #raise Exception("No delimiter existed within the TextNodes")
     return new_nodes
 
 def extract_markdown_images(text):

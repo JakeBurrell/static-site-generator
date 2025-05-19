@@ -45,7 +45,7 @@ def code_to_html_node(text):
     return ParentNode("pre", [LeafNode("code", code_text)])
 
 def quote_to_html_node(text):
-    quote_text = "\n".join([quote[1:] for quote in text.split("\n")])
+    quote_text = "\n".join([quote[1:].strip() for quote in text.split("\n")])
     quote_text_nodes = create_to_textnodes(quote_text)
     quote_html_nodes = [text_node_to_html_node(node) for node in quote_text_nodes]
     return ParentNode("blockquote", quote_html_nodes)
@@ -58,6 +58,17 @@ def list_to_html_node(tag, text):
     for list_item_nodes in unordered_list_nodes]
     return ParentNode(tag, [ParentNode('li', list_item_nodes)
         for list_item_nodes in unordered_list_html_nodes])
+
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if is_heading(block):
+            heading_number = block.count("#")
+            if heading_number == 1:
+                return block.split(" ", 1)[1]
+    return None
+
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
@@ -81,7 +92,7 @@ def markdown_to_html_node(markdown):
 
 
 def is_heading(block) -> bool:
-    heading_pattern = re.compile(r"#{1,6} [\d\w ]+")
+    heading_pattern = re.compile(r"#{1,6} .*")
     if heading_pattern.fullmatch(block):
         return True
     return False

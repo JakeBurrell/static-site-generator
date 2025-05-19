@@ -1,6 +1,6 @@
 import unittest
 
-from block_markdown import BlockType, block_to_blocktype, markdown_to_blocks, list_to_html_node, markdown_to_html_node
+from block_markdown import BlockType, block_to_blocktype, extract_title, markdown_to_blocks, list_to_html_node, markdown_to_html_node
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestBlockMarkdown(unittest.TestCase):
@@ -216,5 +216,39 @@ Quote blocks
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><h2>New heading</h2><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p><p>Ordered list</p><ol><li>Item one</li><li>Item two added</li></ol><p>Unordered List</p><ul><li>items</li><li>item Another</li></ul><p>Quote blocks</p><blockquote> Hello\n This is a quote</blockquote></div>"
+            "<div><h2>New heading</h2><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p><p>Ordered list</p><ol><li>Item one</li><li>Item two added</li></ol><p>Unordered List</p><ul><li>items</li><li>item Another</li></ul><p>Quote blocks</p><blockquote>Hello\nThis is a quote</blockquote></div>"
+        )
+
+    def test_extract_title(self):
+
+        md = """
+# New heading
+
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+           """
+        result = extract_title(md)
+        self.assertEqual(
+            result,
+            'New heading'
+        )
+
+    def test_extract_title_no_title(self):
+
+        md = """
+## New heading
+
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+           """
+        result = extract_title(md)
+        self.assertEqual(
+            result,
+            None
         )
