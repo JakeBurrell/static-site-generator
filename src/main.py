@@ -7,7 +7,7 @@ import sys
 
 SOURCE_DIR = "static"
 DESTINATION_DIR = "docs"
-basepath = '/docs'
+basepath = 'docs/'
 
 def main():
     # Clean Destination
@@ -39,8 +39,8 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown_string)
     if not title:
         title = "No Title"
-    html_string = html_string.replace("{{ Title }}", title)
-    html_string = html_string.replace("{{ Content }}", markdown_to_html_string).replace('src="/', f'src="{basepath}').replace('href="/', f'href="{basepath}')
+    html_string = html_string.replace("{{ Title }}", title).replace('href="/', f'href="{basepath}')
+    html_string = html_string.replace("{{ Content }}", markdown_to_html_string).replace('src="/', f'src="{basepath}')
 
     directory_dest = os.path.dirname(dest_path)
     if not os.path.exists(directory_dest):
