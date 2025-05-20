@@ -7,7 +7,7 @@ import sys
 
 SOURCE_DIR = "static"
 DESTINATION_DIR = "docs"
-basepath = 'static-site-generator'
+basepath = '/static-site-generator/'
 
 def main():
     # Clean Destination
