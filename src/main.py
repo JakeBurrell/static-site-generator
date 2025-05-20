@@ -3,17 +3,20 @@ from block_markdown import extract_title, markdown_to_html_node
 from textnode import TextNode
 import os
 import shutil
+import sys
 
 SOURCE_DIR = "static"
-DESTINATION_DIR = "public"
+DESTINATION_DIR = "docs"
+base_path = 'src/main.py'
 
 def main():
     # Clean Destination
     if os.path.exists(DESTINATION_DIR):
         shutil.rmtree(DESTINATION_DIR)
     copy_directory(SOURCE_DIR, DESTINATION_DIR)
+    print(sys.argv)
     #generate_page("content/index.md", "template.html", "public/index.html")
-    generate_pages_recursive("content", "template.html", "public")
+    generate_pages_recursive("content", "template.html", DESTINATION_DIR)
 
 
 def generate_page(from_path, template_path, dest_path):
