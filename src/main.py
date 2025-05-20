@@ -7,7 +7,7 @@ import sys
 
 SOURCE_DIR = "static"
 DESTINATION_DIR = "docs"
-basepath = '/'
+basepath = 'src/'
 
 def main():
     # Clean Destination
